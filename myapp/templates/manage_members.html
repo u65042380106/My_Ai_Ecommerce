@@ -1,0 +1,306 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* Google Fonts & Custom Theme Colors */
+    @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap');
+
+    :root {
+        --bg-body: #f8fafc;
+        --primary-blue: #1e3a8a;
+        --primary-blue-light: #eff6ff;
+        --primary-orange: #f97316;
+        --primary-orange-hover: #ea580c;
+        --text-dark: #334155;
+        --text-muted: #64748b;
+        --border-color: #e2e8f0;
+    }
+
+    body {
+        background-color: var(--bg-body);
+        font-family: 'Kanit', sans-serif;
+        color: var(--text-dark);
+    }
+
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+    }
+
+    /* 🌟 ปรับโครงสร้างส่วนหัวใหม่ เป็นแถวบนและแถวล่าง 🌟 */
+    .header-top-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.2rem;
+    }
+
+    .header-bottom-row {
+        display: flex;
+        justify-content: flex-start;
+        margin-bottom: 2rem;
+    }
+
+    .page-title h2 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: var(--primary-blue);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .page-title h2::before {
+        content: '';
+        display: inline-block;
+        width: 6px;
+        height: 28px;
+        background-color: var(--primary-orange);
+        border-radius: 3px;
+    }
+
+    /* ช่องค้นหา (Search Box) */
+    .search-container {
+        width: 100%;
+        max-width: 450px; /* กำหนดความกว้างสูงสุดให้พอดี */
+        display: flex;
+    }
+    .search-input {
+        width: 100%;
+        padding: 0.6rem 1.2rem;
+        border: 1px solid var(--border-color);
+        border-radius: 10px 0 0 10px;
+        font-family: 'Kanit', sans-serif;
+        outline: none;
+        transition: 0.2s;
+    }
+    .search-input:focus {
+        border-color: var(--primary-blue);
+    }
+    .btn-search {
+        background-color: var(--primary-blue);
+        color: white;
+        border: none;
+        padding: 0 1.2rem;
+        border-radius: 0 10px 10px 0;
+        font-weight: 500;
+        transition: 0.2s;
+    }
+    .btn-search:hover {
+        background-color: #172a6b;
+        color: white;
+    }
+    .btn-clear-search {
+        background-color: #f1f5f9;
+        color: var(--text-muted);
+        border: 1px solid var(--border-color);
+        border-left: none;
+        padding: 0 0.8rem;
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+    }
+    .btn-clear-search:hover {
+        background-color: #e2e8f0;
+        color: var(--text-dark);
+    }
+
+    /* ปุ่มเปิด-ปิด ประวัติที่ถูกลบ */
+    .btn-toggle-deleted {
+        background-color: white;
+        color: var(--primary-blue);
+        border: 1px solid var(--border-color);
+        padding: 0.6rem 1.2rem;
+        border-radius: 10px;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        text-decoration: none;
+    }
+
+    .btn-toggle-deleted:hover {
+        background-color: var(--primary-blue-light);
+        border-color: var(--primary-blue);
+        color: var(--primary-blue);
+    }
+
+    .btn-toggle-active {
+        background-color: var(--primary-blue);
+        color: white !important;
+        border-color: var(--primary-blue);
+    }
+
+    /* บล็อกตารางข้อมูล */
+    .main-card {
+        background-color: white;
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+
+    .table-responsive { margin: 0; }
+    .custom-table { width: 100%; border-collapse: collapse; }
+    .custom-table th { background-color: #fafafa; color: var(--text-muted); font-weight: 500; font-size: 0.85rem; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); text-align: left; }
+    .custom-table td { padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+    .custom-table tbody tr:hover { background-color: #f8fafc; }
+
+    /* คอลัมน์ข้อมูลผู้ใช้ */
+    .user-profile-cell { display: flex; align-items: center; gap: 1rem; }
+    .user-avatar { width: 42px; height: 42px; background-color: var(--primary-blue-light); color: var(--primary-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1.1rem; }
+    .user-details { display: flex; flex-direction: column; }
+    .user-name { font-weight: 500; color: var(--text-dark); }
+    .user-email-text { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* สัญลักษณ์สถานะ */
+    .status-pill { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.85rem; border-radius: 8px; font-size: 0.85rem; font-weight: 500; }
+    .status-active { background-color: #ecfdf5; color: #065f46; }
+    .status-active::before { content: ''; width: 6px; height: 6px; background-color: #10b981; border-radius: 50%; }
+    .status-suspended { background-color: #fff7ed; color: #9a3412; }
+    .status-suspended::before { content: ''; width: 6px; height: 6px; background-color: var(--primary-orange); border-radius: 50%; }
+    .status-deleted { background-color: #fef2f2; color: #991b1b; }
+    .status-deleted::before { content: ''; width: 6px; height: 6px; background-color: #ef4444; border-radius: 50%; }
+
+    /* กลุ่มปุ่มคำสั่ง */
+    .action-group { display: flex; gap: 0.5rem; justify-content: flex-end; }
+    .btn-action { padding: 0.45rem 0.9rem; border-radius: 8px; font-size: 0.85rem; font-weight: 500; border: 1px solid transparent; transition: all 0.15s ease; display: inline-flex; cursor: pointer; }
+    .btn-suspend { background-color: white; border-color: #cbd5e1; color: var(--text-dark); }
+    .btn-suspend:hover { background-color: #f1f5f9; border-color: #94a3b8; }
+    .btn-unsuspend { background-color: var(--primary-orange); color: white; }
+    .btn-unsuspend:hover { background-color: var(--primary-orange-hover); }
+    .btn-delete-member { background-color: white; border-color: #fee2e2; color: #ef4444; }
+    .btn-delete-member:hover { background-color: #fef2f2; border-color: #fca5a5; }
+
+    .empty-state { text-align: center; padding: 4rem 2rem; color: var(--text-muted); }
+</style>
+
+<div class="dashboard-container">
+    
+    <div class="header-top-row">
+        <div class="page-title">
+            <h2>รายชื่อสมาชิกในระบบ</h2>
+        </div>
+        <div>
+            <a href="?show_deleted={% if show_deleted %}false{% else %}true{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" 
+               class="btn-toggle-deleted {% if show_deleted %}btn-toggle-active{% endif %}">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                {% if show_deleted %}
+                    ซ่อนสมาชิกที่ถูกลบ
+                {% else %}
+                    แสดงประวัติที่ถูกลบ
+                {% endif %}
+            </a>
+        </div>
+    </div>
+
+    <div class="header-bottom-row">
+        <form method="GET" action="{% url 'manage_members' %}" class="search-container">
+            {% if show_deleted %}
+                <input type="hidden" name="show_deleted" value="true">
+            {% endif %}
+            
+            <input type="text" name="q" class="search-input" placeholder="ค้นหา Username หรือ Email..." value="{{ search_query }}">
+            
+            {% if search_query %}
+            <a href="?{% if show_deleted %}show_deleted=true{% endif %}" class="btn-clear-search" title="ล้างการค้นหา">
+                ✕
+            </a>
+            {% endif %}
+            
+            <button type="submit" class="btn-search">
+                ค้นหา
+            </button>
+        </form>
+    </div>
+
+    <div class="main-card">
+        <div class="table-responsive">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th style="width: 45%;">ข้อมูลผู้ใช้งาน</th>
+                        <th style="width: 25%;">สถานะบัญชี</th>
+                        <th style="width: 30%; text-align: right; padding-right: 2rem;">การจัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for profile in profiles %}
+                    <tr>
+                        <td>
+                            <div class="user-profile-cell">
+                                <div class="user-avatar">
+                                    {{ profile.user.username|slice:":1"|upper }}
+                                </div>
+                                <div class="user-details">
+                                    <span class="user-name">{{ profile.user.username }}</span>
+                                    <span class="user-email-text">{{ profile.user.email|default:"- ไม่มีข้อมูลอีเมล -" }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if profile.is_deleted %}
+                                <span class="status-pill status-deleted">ถูกลบเมื่อ {{ profile.deleted_at|date:"d M Y" }}</span>
+                            {% elif profile.is_suspended %}
+                                <span class="status-pill status-suspended">ระงับการใช้งาน</span>
+                            {% else %}
+                                <span class="status-pill status-active">เปิดใช้งานปกติ</span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: right; padding-right: 2rem;">
+                            {% if not profile.is_deleted %}
+                                <div class="action-group">
+                                    <form action="{% url 'toggle_suspend' profile.id %}" method="POST" style="margin:0;">
+                                        {% csrf_token %}
+                                        {% if profile.is_suspended %}
+                                            <button type="submit" class="btn-action btn-unsuspend">
+                                                ปลดระงับ
+                                            </button>
+                                        {% else %}
+                                            <button type="submit" class="btn-action btn-suspend">
+                                                ระงับใช้งาน
+                                            </button>
+                                        {% endif %}
+                                    </form>
+
+                                    <form action="{% url 'delete_member' profile.id %}" method="POST" style="margin:0;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn-action btn-delete-member" onclick="return confirm('ยืนยันที่จะลบบัญชีผู้ใช้ {{ profile.user.username }} ออกจากระบบ? (ระบบจะบันทึกประวัติการลบไว้)');">
+                                            ลบบัญชี
+                                        </button>
+                                    </form>
+                                </div>
+                            {% else %}
+                                <span style="font-size: 0.85rem; color: var(--text-muted); font-style: italic;">ไม่สามารถจัดการได้</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="empty-state">
+                            <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin-bottom: 1rem; color: #cbd5e1;">
+                                <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <p style="margin: 0; font-size: 1rem;">
+                                {% if search_query %}
+                                    ไม่พบรายชื่อผู้ใช้งานที่ตรงกับคำว่า "{{ search_query }}"
+                                {% else %}
+                                    ไม่พบข้อมูลรายชื่อสมาชิกในระบบขณะนี้
+                                {% endif %}
+                            </p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

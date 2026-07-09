@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container mt-4 mx-auto" style="color: #2d1a4d; max-width: 700px;">
+    <div class="card shadow-sm border-0 rounded-4 p-4" style="background-color: #ffffff; border: 1px solid #f3f0ff!important;">
+        <h3 class="fw-bold mb-4 d-flex align-items-center flex-wrap gap-2" style="color: #45310e;">
+            <div>
+                <i class="fas fa-search me-2" style="color: #503510;"></i> ค้นหาและวิเคราะห์สินค้าด้วย AI
+            </div>
+            <span class="badge rounded-pill ms-md-2" style="background: linear-gradient(45deg, #0f136d, #f36f21); font-size: 0.9rem; font-weight: 500;">
+                <i class="fas fa-shopping-bag me-1"></i> สืบค้นจาก Lazada
+            </span>
+        </h3>
+
+        <form method="GET" action="/dashboard/">
+            
+            <div class="mb-4">
+                <label class="form-label fw-semibold" style="color: #45310e;">คำค้นหาสินค้า <span class="text-danger">*</span></label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 text-muted" style="border-color: #ced4da;"><i class="fas fa-shopping-basket"></i></span>
+                    <input type="text" name="keyword" class="form-control border-start-0" placeholder="เช่น รองเท้าผ้าใบ, หลอดไฟ LED, ชั้นวางของ " required style="padding: 12px;">
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-6">
+                    <label class="form-label fw-semibold" style="color: #45310e;">ราคาต่ำสุด (บาท)</label>
+                    <input type="number" name="min_price" class="form-control" placeholder="ไม่ระบุ" style="padding: 10px;">
+                </div>
+                <div class="col-6">
+                    <label class="form-label fw-semibold" style="color: #45310e;">ราคาสูงสุด (บาท)</label>
+                    <input type="number" name="max_price" class="form-control" placeholder="ไม่ระบุ" style="padding: 10px;">
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-semibold" style="color: #45310e;">สถานที่จัดส่งสินค้า</label>
+                <select name="ship_from" class="form-select" style="padding: 10px;">
+                    <option value="all">ทั้งหมด </option>
+                    <option value="local">ภายในประเทศ </option>
+                    <option value="overseas">ต่างประเทศ </option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-semibold" style="color: #45310e;">คะแนนรีวิวของสินค้าขั้นต่ำ</label>
+                <div class="d-flex align-items-center gap-2 fs-4">
+                    <input type="hidden" name="min_rating" id="min_rating" value="">
+                    <i class="fas fa-star star-rating-icon" data-value="1" style="cursor: pointer; color: #ddd6fe;"></i>
+                    <i class="fas fa-star star-rating-icon" data-value="2" style="cursor: pointer; color: #ddd6fe;"></i>
+                    <i class="fas fa-star star-rating-icon" data-value="3" style="cursor: pointer; color: #ddd6fe;"></i>
+                    <i class="fas fa-star star-rating-icon" data-value="4" style="cursor: pointer; color: #ddd6fe;"></i>
+                    <i class="fas fa-star star-rating-icon" data-value="5" style="cursor: pointer; color: #ddd6fe;"></i>
+                    <span id="star_text" class="fs-6 ms-2 text-muted">เลือกคะแนนขั้นต่ำที่ต้องการ</span>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-semibold d-flex align-items-center flex-wrap gap-1" style="color: #45310e;">
+                    โหมดการวิเคราะห์และจัดอันดับโดย AI
+                    <i class="fas fa-info-circle text-muted" 
+                       style="cursor: pointer; font-size: 1.1rem; color: #45310e !important;" 
+                       data-bs-toggle="popover" 
+                       data-bs-trigger="hover focus" 
+                       data-bs-html="true" 
+                       title="💡 รายละเอียดเงื่อนไขการตัดสินใจของ AI" 
+                       data-bs-content="<div class='small text-dark text-start'>
+                            <p class='mb-2'><b>⚖️ โหมดสมดุล :</b><br>คำนวณและให้น้ำหนักแบบสมดุลระหว่าง <b>ราคาที่คุ้มค่า</b> และ <b>ความน่าเชื่อถือของตัวสินค้า</b> เหมาะสำหรับผู้ใช้ทั่วไป</p>
+                            <p class='mb-2'><b>🛡️ โหมดน่าเชื่อถือ :</b><br>เน้นคัดเลือกเฉพาะสินค้าที่มี <b>คะแนนดาวรีวิวสูงมาก มีรีวิวเยอะ และประวัติร้านค้าดี</b> เพื่อป้องกันความเสี่ยงและมั่นใจในคุณภาพสินค้า</p>
+                            <p class='mb-0'><b>💰 โหมดประหยัด :</b><br>เน้นสินค้าที่มี <b>ราคาถูกประหยัดที่สุด</b> คุ้มเม็ดเงินที่สุด โดยยังคงรักษาเกณฑ์มาตรฐานขั้นต่ำที่ใช้งานได้จริง</p>
+                       </div>">
+                    </i>
+                </label>
+                <select name="ai_mode" class="form-select" style="padding: 10px;">
+                    <option value="balanced">โหมดสมดุล </option>
+                    <option value="safe">โหมดน่าเชื่อถือ </option>
+                    <option value="budget">โหมดประหยัด </option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn w-100 text-white rounded-pill fw-bold py-2 shadow-sm transition-all" 
+                    style="background-color: #45310e; border: none;"
+                    onmouseover="this.style.backgroundColor='#45310e'" 
+                    onmouseout="this.style.backgroundColor='#45310e'">
+                <i class="fas fa-robot me-2"></i> เริ่มค้นหาและให้ AI วิเคราะห์ข้อมูล
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // [1] ระบบ Star Rating คะแนนดาว
+    const stars = document.querySelectorAll('.star-rating-icon');
+    const minRatingInput = document.getElementById('min_rating');
+    const starText = document.getElementById('star_text');
+
+    const textLabels = {
+        1: "1 ดาวขึ้นไป (ระดับพอใช้)",
+        2: "2 ดาวขึ้นไป (ระดับปานกลาง)",
+        3: "3 ดาวขึ้นไป (ระดับดี)",
+        4: "4 ดาวขึ้นไป (ระดับดีมาก)",
+        5: "5 ดาวเต็ม (ระดับดีเลิศ)"
+    };
+
+    stars.forEach(star => {
+        star.addEventListener('mouseover', function() {
+            let currentVal = parseInt(this.getAttribute('data-value'));
+            highlightStars(currentVal);
+        });
+
+        star.addEventListener('mouseout', function() {
+            let activeVal = parseInt(minRatingInput.value) || 0;
+            highlightStars(activeVal);
+        });
+
+        star.addEventListener('click', function() {
+            let selectedVal = parseInt(this.getAttribute('data-value'));
+            minRatingInput.value = selectedVal;
+            starText.innerText = textLabels[selectedVal];
+            starText.style.color = "#6d28d9";
+            highlightStars(selectedVal);
+        });
+    });
+
+    function highlightStars(val) {
+        stars.forEach(s => {
+            let sVal = parseInt(s.getAttribute('data-value'));
+            if (sVal <= val) {
+                // เมื่อถูกเลือกหรือเอาเมาส์ชี้ -> ให้ดาวเป็นสีทอง
+                s.style.color = "#faca51"; 
+            } else {
+                // เมื่อไม่ได้เลือก -> ให้ดาวกลับไปเป็นสีเทาอ่อน
+                s.style.color = "#ddd6fe"; 
+            }
+        });
+    }
+
+    // [2] คำสั่งเปิดใช้งานระบบ Bootstrap Popovers เพื่อรองรับการ Hover ไอคอนตัว i
+    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+    var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+        return new bootstrap.Popover(popoverTriggerEl)
+    });
+});
+</script>
+
+<style>
+    .transition-all { transition: all 0.25s ease-in-out; }
+</style>
+{% endblock %}

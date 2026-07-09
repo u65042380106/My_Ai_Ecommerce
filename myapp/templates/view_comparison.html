@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4 mb-5" style="color: #000000;">
+    
+    <!-- ส่วนหัวของหน้าเว็บ -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div class="text-center text-md-start mb-3 mb-md-0">
+            <h2 class="fw-bold mb-1" style="color: #233d4d;">
+                <i class="fas fa-balance-scale me-2" style="color: #fe7f2d;"></i>ผลเปรียบเทียบ: {{ keyword }}
+            </h2>
+            <p class="text-muted mb-0">รายละเอียดเชิงลึก ข้อมูลจำเพาะ และคำแนะนำเพื่อการตัดสินใจ</p>
+        </div>
+        <div>
+            <!-- ปุ่มย้อนกลับ -->
+            <a href="{% url 'select_compare' history_id %}" class="btn rounded-pill px-4 me-2 mb-2 mb-md-0" style="background-color: #eaecf0; color: #233d4d; border: 1px solid #233d4d;">
+                <i class="fas fa-undo me-1"></i> เลือกสินค้าใหม่
+            </a>
+            <a href="/" class="btn rounded-pill px-4 mb-2 mb-md-0" style="background-color: #fe7f2d; color: #ffffff; border: none;">
+                <i class="fas fa-search me-1"></i> ค้นหาใหม่
+            </a>
+        </div>
+    </div>
+
+    <!-- ส่วนที่ 1: คำแนะนำจาก AI Recommendation -->
+    {% if ai_recommendation %}
+    <div class="card border-0 shadow-sm rounded-4 mb-5" style="background-color: #f8f9fa; border-left: 6px solid #fe7f2d !important;">
+        <div class="card-body p-4">
+            <h4 class="fw-bold" style="color: #233d4d;"><i class="fas fa-robot me-2" style="color: #fe7f2d;"></i> บทสรุปและคำแนะนำจาก AI</h4>
+            <div class="mt-3 text-dark" style="line-height: 1.6;">
+                {{ ai_recommendation|linebreaks }}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ส่วนที่ 2: ตารางเปรียบเทียบสินค้า -->
+    <div class="comparison-scroll d-flex flex-nowrap gap-4 pb-3">
+        {% for item in selected_products %}
+        <div class="comparison-slide">
+            
+            <!-- 🌟 เพิ่ม position-relative เพื่อให้ป้ายแนะนำลอยอยู่ด้านบน 🌟 -->
+            <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative">
+                
+                <!-- 🌟 ป้าย AI แนะนำ (โชว์เฉพาะตัวที่ชนะ) 🌟 -->
+                {% if item.is_best_choice %}
+                <div class="position-absolute top-0 start-0 m-3" style="z-index: 10;">
+                    <span class="badge rounded-pill shadow px-3 py-2 fs-6 border border-white border-2" style="background-color: #e63946; color: white;">
+                        <i class="fas fa-crown text-warning me-1"></i> AI แนะนำชิ้นนี้
+                    </span>
+                </div>
+                {% endif %}
+
+                <!-- รูปภาพหลัก -->
+                <img src="{{ item.image_url|default:'https://via.placeholder.com/400x300?text=No+Image' }}" class="card-img-top" style="height: 250px; object-fit: cover;">
+                
+                <div class="card-body p-4 bg-white d-flex flex-column">
+                    <!-- ชื่อและราคา -->
+                    <h5 class="card-title fw-bold" style="color: #233d4d;">{{ item.title|default:"ไม่มีชื่อสินค้า" }}</h5>
+                    <h3 class="fw-bold mb-3" style="color: #fe7f2d;">฿{{ item.price }}</h3>
+                    
+                    <!-- ข้อมูลเบื้องต้น -->
+                    <ul class="list-group list-group-flush mb-4 small">
+                        <li class="list-group-item px-0 bg-transparent text-muted"><i class="fas fa-star text-warning me-2"></i> <strong>คะแนน:</strong> {{ item.rating|default:"ไม่มีคะแนน" }}</li>
+                        <li class="list-group-item px-0 bg-transparent text-muted"><i class="fas fa-shopping-basket text-info me-2"></i> <strong>ขายไปแล้ว:</strong> {{ item.sales|default:"0" }}</li>
+                        <li class="list-group-item px-0 bg-transparent text-muted"><i class="fas fa-map-marker-alt text-danger me-2"></i> <strong>จัดส่งจาก:</strong> {{ item.ship_from|default:"ไม่ระบุ" }}</li>
+                    </ul>
+                    
+                    <!-- กล่องแสดงรายละเอียดและข้อมูลจำเพาะ -->
+                    <div class="mb-3 flex-grow-1">
+                        <span class="badge mb-2 px-3 py-2" style="background-color: #eaecf0; color: #233d4d;">
+                            <i class="fas fa-info-circle me-1"></i> รายละเอียด & ข้อมูลจำเพาะ
+                        </span>
+                        <!-- ปรับความสูงเป็น 300px และเพิ่ม Scrollbar ให้เลื่อนอ่านง่าย -->
+                        <div class="p-3 rounded-3 shadow-inner" style="background-color: #f8f9fa; border: 1px solid #eaecf0; height: 300px; overflow-y: auto;">
+                            <!-- white-space: pre-wrap; จะช่วยให้การขึ้นบรรทัดใหม่จาก Scrape2 แสดงผลถูกต้อง -->
+                            <p class="small text-dark mb-0" style="white-space: pre-wrap; line-height: 1.6;">{{ item.description|default:"ไม่มีข้อมูลรายละเอียด" }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ปุ่มสั่งซื้อไปยัง Lazada -->
+                <div class="card-footer bg-white border-0 p-4 pt-0">
+                    {% if item.product_url %}
+                        <a href="{{ item.product_url }}" target="_blank" class="btn w-100 rounded-pill fw-bold text-white shadow-sm" style="background-color: #233d4d;">
+                            สั่งซื้อที่ Lazada <i class="fas fa-shopping-cart ms-1"></i>
+                        </a>
+                    {% else %}
+                        <button class="btn w-100 rounded-pill fw-bold text-white shadow-sm" style="background-color: #cccccc;" disabled>
+                            ไม่มีลิงก์สินค้า
+                        </button>
+                    {% endif %}
+                </div>
+                
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    /* เพิ่มลูกเล่นเงาด้านในให้กล่องรายละเอียดดูมีมิติ */
+    .shadow-inner {
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+    }
+
+    .comparison-scroll {
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x proximity;
+        scrollbar-width: thin;
+        scrollbar-color: #233d4d #eaecf0;
+    }
+
+    .comparison-slide {
+        flex: 0 0 min(86vw, 360px);
+        scroll-snap-align: start;
+    }
+
+    @media (min-width: 992px) {
+        .comparison-slide {
+            flex-basis: 380px;
+        }
+    }
+
+    .comparison-scroll::-webkit-scrollbar {
+        height: 10px;
+    }
+
+    .comparison-scroll::-webkit-scrollbar-track {
+        background: #eaecf0;
+        border-radius: 999px;
+    }
+
+    .comparison-scroll::-webkit-scrollbar-thumb {
+        background: #233d4d;
+        border-radius: 999px;
+    }
+
+    .comparison-scroll::-webkit-scrollbar-thumb:hover {
+        background: #fe7f2d;
+    }
+    
+    /* ปรับแต่ง Scrollbar ของกล่องรายละเอียดให้สวยงาม */
+    .p-3.rounded-3::-webkit-scrollbar {
+        width: 6px;
+    }
+    .p-3.rounded-3::-webkit-scrollbar-track {
+        background: #f1f1f1; 
+        border-radius: 10px;
+    }
+    .p-3.rounded-3::-webkit-scrollbar-thumb {
+        background: #c1c1c1; 
+        border-radius: 10px;
+    }
+    .p-3.rounded-3::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8; 
+    }
+</style>
+{% endblock %}

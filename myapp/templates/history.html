@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm mb-3" role="alert">
+                <i class="fas fa-check-circle me-2"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm p-4 bg-white rounded-3 border-0">
+        <h2 class="fw-bold mb-4 text-dark"><i class="fas fa-history text-secondary me-2"></i> ประวัติการวิเคราะห์สินค้าของคุณ</h2>
+        
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 20%;">วันเวลาที่ค้นหา</th>
+                        <th style="width: 30%;">คำค้นหา (Keyword)</th>
+                        <th style="width: 15%;">สถานะระบบ</th>
+                        <th style="width: 35%;" class="text-center">การจัดการข้อมูล</th>
+                    </tr>
+                </thead>
+                <tbody>
+    {% for h in histories %}
+    <tr>
+        <td class="text-muted small">{{ h.created_at|date:"d/m/Y H:i" }}</td>
+        <td class="fw-bold" style="color: #4c1d95;">{{ h.keyword }}</td>
+        
+        <td>
+            {% if h.status == 'pending_n8n' or h.status == 'pending' %}
+                <span class="badge bg-warning text-dark pending-status rounded-pill px-3 py-2">
+                    <i class="fas fa-robot fa-spin me-1"></i> AI กำลังคัดกรอง...
+                </span>
+            {% elif h.status == 'pending_scrape2' %}
+                <span class="badge bg-info text-dark pending-status rounded-pill px-3 py-2">
+                    <i class="fas fa-camera fa-spin me-1"></i> กำลังดึงข้อมูล...
+                </span>
+            {% elif h.status == 'success' %}
+                <span class="badge bg-success rounded-pill px-3 py-2">
+                    <i class="fas fa-check-circle me-1"></i> เสร็จสมบูรณ์
+                </span>
+            {% else %}
+                <span class="badge bg-danger rounded-pill px-3 py-2">
+                    <i class="fas fa-exclamation-triangle me-1"></i> ล้มเหลว
+                </span>
+            {% endif %}
+        </td>
+        
+        <td class="text-center">
+            <div class="d-flex justify-content-center gap-2">
+                {% if h.status == 'success' %}
+                    <a href="{% url 'result_detail' h.id %}" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm" style="background-color: #6d28d9; border: none;">
+                        <i class="fas fa-eye me-1"></i> ดูผลลัพธ์
+                    </a>
+                {% else %}
+                    <button class="btn btn-sm btn-secondary rounded-pill px-3 shadow-sm" disabled>
+                        <i class="fas fa-hourglass-half me-1"></i> รอข้อมูล...
+                    </button>
+                {% endif %}
+
+                <form action="{% url 'delete_history' h.id %}" method="POST" 
+                      onsubmit="return confirm('คุณแน่ใจหรือไม่ว่าต้องการลบประวัติการค้นหาคำว่า \'{{ h.keyword }}\' นี้ออกจากฐานข้อมูล?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill px-2" title="ลบประวัตินี้">
+                        <i class="fas fa-trash-alt text-danger"></i> ลบ
+                    </button>
+                </form>
+            </div>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="4" class="text-center py-5 text-muted">
+            <i class="fas fa-folder-open fa-3x d-block mb-3 text-black-50"></i> ยังไม่มีประวัติการค้นหาสินค้าในระบบ
+        </td>
+    </tr>
+    {% endfor %}
+</tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        if (document.querySelector('.pending-status')) {
+            setTimeout(function() {
+                location.reload();
+            }, 4000);
+        }
+    });
+</script>
+{% endblock %}

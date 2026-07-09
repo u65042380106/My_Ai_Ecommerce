@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4 mb-5" style="color: #000000;">
+    
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div class="text-center text-md-start mb-3 mb-md-0">
+            <h2 class="fw-bold mb-1" style="color: #233d4d;">
+                <i class="fas fa-check-circle me-2" style="color: #fe7f2d;"></i>ผลการวิเคราะห์จาก AI
+            </h2>
+            <p class="text-muted mb-0">นี่คือ 9 สินค้าที่ AI Gemini คัดเลือกและวิเคราะห์ว่าคุ้มค่าที่สุดสำหรับคุณ</p>
+        </div>
+        <a href="/" class="btn rounded-pill px-4" style="background-color: #eaecf0; color: #233d4d; border: 1px solid #233d4d;">
+            <i class="fas fa-search me-1"></i> ค้นหาใหม่
+        </a>
+    </div>
+
+    <div class="row g-4">
+        {% for item in ai_results|slice:":9" %}
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden transition-up">
+                
+                <div class="position-absolute top-0 end-0 m-3 badge rounded-pill px-3 py-2 shadow-sm" 
+                     style="background-color: #fe7f2d; color: white; font-size: 0.9rem;">
+                    <i class="fas fa-star text-white me-1"></i> AI Score: {{ item.ai_score|default:"95" }}/100
+                </div>
+
+                <img src="{{ item.image_url|default:'https://via.placeholder.com/400x300?text=Product+Image' }}" 
+                     class="card-img-top" alt="Product Image" style="height: 200px; object-fit: cover;">
+                
+                <div class="card-body p-4" style="background-color: #ffffff;">
+                    <h5 class="card-title fw-bold text-truncate" style="color: #233d4d;">{{ item.product_name }}</h5>
+                    <h4 class="fw-bold mb-3" style="color: #fe7f2d;">฿{{ item.price }}</h4>
+                    
+                    <div class="mb-3">
+                        <span class="badge" style="background-color: #eaecf0; color: #233d4d;">
+                            <i class="fas fa-thumbs-up me-1 text-success"></i> ข้อดีเด่นชัด
+                        </span>
+                        <p class="small text-muted mt-2 mb-0 line-clamp-2">
+                            {{ item.ai_pros|default:"(ไม่มีข้อมูลข้อดี)" }}
+                        </p>
+                    </div>
+
+                    <hr style="border-color: #eaecf0;">
+                    
+                    <div class="mb-3">
+                        <span class="badge" style="background-color: #eaecf0; color: #233d4d;">
+                            <i class="fas fa-exclamation-triangle me-1 text-danger"></i> ข้อควรระวัง
+                        </span>
+                        <p class="small text-muted mt-2 mb-0 line-clamp-2">
+                            {{ item.ai_cons|default:"(ไม่มีข้อมูลข้อควรระวัง)" }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-white border-0 p-4 pt-0">
+                    <a href="{{ item.product_link }}" target="_blank" class="btn w-100 rounded-pill fw-bold" 
+                       style="background-color: #233d4d; color: #ffffff;">
+                       ไปที่หน้าร้านค้า <i class="fas fa-external-link-alt ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-box-open fa-4x mb-3" style="color: #eaecf0;"></i>
+            <h4 style="color: #233d4d;">ไม่พบข้อมูลสินค้าที่สอดคล้องกับคำค้นหา</h4>
+            <p class="text-muted">โปรดลองใช้คำค้นหาใหม่ หรือรอระบบอัปเดตข้อมูล</p>
+            <a href="/" class="btn btn-outline-secondary mt-3 rounded-pill px-4">กลับไปหน้าค้นหา</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    /* เอฟเฟกต์เวลาเมาส์ชี้ไปที่การ์ดสินค้า */
+    .transition-up {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .transition-up:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 1rem 2rem rgba(35, 61, 77, 0.15) !important;
+    }
+    
+    /* ควบคุมข้อความข้อดี-ข้อเสียไม่ให้ยาวเกิน 2 บรรทัด */
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;  
+        overflow: hidden;
+    }
+</style>
+{% endblock %}

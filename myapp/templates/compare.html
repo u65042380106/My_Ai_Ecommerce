@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4 mb-5" style="color: #000000;">
+    
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div class="text-center text-md-start mb-3 mb-md-0">
+            <h2 class="fw-bold mb-1" style="color: #233d4d;">
+                <i class="fas fa-balance-scale me-2" style="color: #fe7f2d;"></i>เปรียบเทียบสินค้า: {{ keyword }}
+            </h2>
+            {% if not is_compared %}
+                <p class="text-muted mb-0">เลือกสินค้า 3 ชิ้นจากรายการด้านล่าง เพื่อเปรียบเทียบรายละเอียด</p>
+            {% else %}
+                <p class="text-muted mb-0">ตารางเปรียบเทียบคุณสมบัติและรายละเอียดเชิงลึก</p>
+            {% endif %}
+        </div>
+        <div>
+            {% if is_compared %}
+            <a href="{% url 'compare' history_id %}" class="btn rounded-pill px-4 me-2 mb-2 mb-md-0" style="background-color: #eaecf0; color: #233d4d; border: 1px solid #233d4d;">
+                <i class="fas fa-undo me-1"></i> ย้อนกลับไปเลือกใหม่
+            </a>
+            {% endif %}
+            <a href="/" class="btn rounded-pill px-4" style="background-color: #eaecf0; color: #233d4d; border: 1px solid #233d4d;">
+                <i class="fas fa-search me-1"></i> ค้นหาใหม่
+            </a>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-danger rounded-pill">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    {% if is_compared %}
+        <div class="row g-4">
+            {% for item in selected_products %}
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
+                    
+                    <img src="{{ item.image_url|default:'https://via.placeholder.com/400x300?text=No+Image' }}" class="card-img-top" style="height: 250px; object-fit: cover;">
+                    
+                    <div class="card-body p-4" style="background-color: #ffffff;">
+                        <h5 class="card-title fw-bold" style="color: #233d4d;">{{ item.title|default:item.product_name }}</h5>
+                        <h3 class="fw-bold mb-3" style="color: #fe7f2d;">฿{{ item.price }}</h3>
+                        
+                        <ul class="list-group list-group-flush mb-4">
+                            <li class="list-group-item px-0 bg-transparent text-muted"><i class="fas fa-star text-warning me-2"></i> <strong>คะแนน:</strong> {{ item.rating }}</li>
+                            <li class="list-group-item px-0 bg-transparent text-muted"><i class="fas fa-shopping-cart text-info me-2"></i> <strong>ยอดขาย:</strong> {{ item.sales }}</li>
+                            <li class="list-group-item px-0 bg-transparent text-muted"><i class="fas fa-map-marker-alt text-danger me-2"></i> <strong>จัดส่งจาก:</strong> {{ item.ship_from }}</li>
+                        </ul>
+                        
+                        <div class="mb-3">
+                            <span class="badge mb-2" style="background-color: #eaecf0; color: #233d4d; font-size: 0.9rem;">
+                                <i class="fas fa-info-circle me-1"></i> รายละเอียดจากร้านค้า
+                            </span>
+                            <div class="p-3 rounded-3" style="background-color: #f8f9fa; border: 1px solid #eaecf0; height: 250px; overflow-y: auto;">
+                                <p class="small text-muted mb-0" style="white-space: pre-wrap; font-size: 0.85rem;">{{ item.description|default:"ไม่มีข้อมูลรายละเอียด" }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer bg-white border-0 p-4 pt-0">
+                        <a href="{{ item.link }}" target="_blank" class="btn w-100 rounded-pill fw-bold" style="background-color: #233d4d; color: #ffffff;">
+                            สั่งซื้อที่ Lazada <i class="fas fa-external-link-alt ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+    {% else %}
+        <form method="POST" id="compareForm">
+            {% csrf_token %}
+            <div class="row g-4">
+                {% for item in all_products %}
+                <div class="col-md-4">
+                    <label class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative w-100" style="cursor: pointer;" onclick="toggleCheckbox(this)">
+                        
+                        <input type="checkbox" name="selected_products" value="{{ forloop.counter0 }}" class="d-none product-checkbox">
+                        
+                        <div class="position-absolute top-0 end-0 m-3 check-icon" style="display: none; z-index: 10;">
+                            <i class="fas fa-check-circle fa-2x text-success bg-white rounded-circle shadow"></i>
+                        </div>
+
+                        <img src="{{ item.image_url|default:'https://via.placeholder.com/400x300?text=No+Image' }}" class="card-img-top" style="height: 200px; object-fit: cover;">
+                        
+                        <div class="card-body p-4">
+                            <h6 class="card-title fw-bold text-truncate" style="color: #233d4d;">{{ item.title|default:item.product_name }}</h6>
+                            <h4 class="fw-bold mb-3" style="color: #fe7f2d;">฿{{ item.price }}</h4>
+                            <p class="small text-muted mb-1"><i class="fas fa-star text-warning"></i> {{ item.rating }} | ขายแล้ว {{ item.sales }}</p>
+                        </div>
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="fixed-bottom bg-white shadow-lg p-3 text-center border-top">
+                <span class="fw-bold me-3" id="selectionCount" style="color: #233d4d;">เลือกแล้ว: 0 / 3 ชิ้น</span>
+                <button type="submit" class="btn rounded-pill px-5 py-2 fw-bold text-white shadow-sm" style="background-color: #fe7f2d;" id="btnCompare" disabled>
+                    เปรียบเทียบเลย! <i class="fas fa-arrow-right ms-2"></i>
+                </button>
+            </div>
+        </form>
+
+        <script>
+            function toggleCheckbox(labelElement) {
+                const checkbox = labelElement.querySelector('.product-checkbox');
+                const checkIcon = labelElement.querySelector('.check-icon');
+                const allCheckboxes = document.querySelectorAll('.product-checkbox:checked');
+                const btnCompare = document.getElementById('btnCompare');
+                const selectionCount = document.getElementById('selectionCount');
+
+                if (!checkbox.checked && allCheckboxes.length >= 3) {
+                    alert("คุณเลือกสินค้าครบ 3 ชิ้นแล้วครับ");
+                    return;
+                }
+
+                checkbox.checked = !checkbox.checked;
+
+                if (checkbox.checked) {
+                    labelElement.style.border = "3px solid #198754";
+                    labelElement.style.transform = "scale(0.98)";
+                    checkIcon.style.display = "block";
+                } else {
+                    labelElement.style.border = "none";
+                    labelElement.style.transform = "scale(1)";
+                    checkIcon.style.display = "none";
+                }
+
+                const currentCount = document.querySelectorAll('.product-checkbox:checked').length;
+                selectionCount.innerText = `เลือกแล้ว: ${currentCount} / 3 ชิ้น`;
+                
+                if (currentCount === 3) {
+                    btnCompare.disabled = false;
+                } else {
+                    btnCompare.disabled = true;
+                }
+            }
+        </script>
+        
+        <style>
+            body { margin-bottom: 80px; } /* ป้องกันปุ่มเปรียบเทียบบังเนื้อหา */
+        </style>
+    {% endif %}
+</div>
+{% endblock %}

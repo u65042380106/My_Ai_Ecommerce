@@ -1,0 +1,157 @@
+{% load socialaccount %}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบ AI ช่วยตัดสินใจซื้อสินค้าออนไลน์สำหรับผู้บริโภค</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { 
+            background-color: #eaecf0; /* สีพื้นหลังธีม */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .navbar { box-shadow: 0 2px 4px rgba(0,0,0,.1); }
+        .main-content { flex: 1; }
+        
+        /* สไตล์สำหรับปุ่ม Login */
+        .btn-outline-theme {
+            color: #fe7f2d;
+            border-color: #fe7f2d;
+            transition: all 0.3s ease;
+        }
+        .btn-outline-theme:hover {
+            background-color: #fe7f2d;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(234, 236, 240, 0.95); z-index: 9999; flex-direction: column; justify-content: center; align-items: center;">
+        <div class="text-center p-5 rounded-4 shadow bg-white border" style="max-width: 450px; border-color: #233d4d !important;">
+            <i class="fas fa-robot fa-4x mb-4 fa-bounce" style="color: #fe7f2d;"></i>
+            <div class="progress mb-4" style="height: 10px; background-color: #eaecf0; border-radius: 50rem;">
+                <div id="loadingProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 10%; background-color: #fe7f2d;"></div>
+            </div>
+            <h4 class="fw-bold mb-2" style="color: #233d4d;" id="loadingStatusTitle">กำลังประมวลผล...</h4>
+            <p class="text-muted mb-0" id="loadingStatusText">กำลังเริ่มต้นระบบ...</p>
+        </div>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-white mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/" style="color: #233d4d;">
+                <i class="fas fa-robot" style="color: #fe7f2d;"></i> ระบบ AI ช่วยตัดสินใจซื้อสินค้าออนไลน์สำหรับผู้บริโภค
+            </a>
+            <div class="d-flex align-items-center">
+                {% if user.is_authenticated %}
+                    <div class="dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center text-dark fw-semibold" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="{{ user.socialaccount_set.all.0.get_avatar_url }}" 
+                                 class="rounded-circle me-2 shadow-sm" 
+                                 width="38" height="38" alt="Profile"
+                                 onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+                            <span>{{ user.username }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="profileDropdown">
+                            {% if user.is_staff %}
+                            <li>
+                                <a class="dropdown-item py-2 fw-bold" href="/manage-members/" style="color: #233d4d;">
+                                    <i class="fas fa-users-cog me-2"></i> จัดการสมาชิก (Admin)
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            {% endif %}
+                            <li>
+                                <a class="dropdown-item py-2" href="/profile/">
+                                    <i class="fas fa-user-cog text-muted me-2"></i> ตั้งค่าโปรไฟล์
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item py-2" href="/history/">
+                                    <i class="fas fa-history text-muted me-2"></i> ประวัติการค้นหา
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item py-2 text-danger" href="{% url 'account_logout' %}">
+                                    <i class="fas fa-sign-out-alt me-2"></i> ออกจากระบบ
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                {% else %}
+                    <a href="{% provider_login_url 'google' %}" class="btn btn-outline-theme px-4 rounded-pill">
+                        <i class="fab fa-google"></i> Log in with Google
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="container main-content">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <footer class="bg-white border-top text-center py-4 mt-5 text-muted">
+        <div class="container">
+            <div class="row align-items-center justify-content-between g-3">
+                <div class="col-md-auto text-md-start">
+                    <span class="fw-bold" style="color: #233d4d;">
+                         ระบบ AI ช่วยตัดสินใจซื้อสินค้าออนไลน์สำหรับผู้บริโภค
+                    </span>
+                </div>
+                <div class="col-md-auto text-md-end">
+                    <small class="mb-0" style="color: #000000;">&copy; 2026 . All rights reserved.</small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // ค้นหาฟอร์มที่มีแอคชั่นการค้นหา (ปรับ Selector ตรงนี้ให้ตรงกับหน้าค้นหาของคุณ)
+            const searchForm = document.querySelector('form[action*="dashboard"], form#searchForm'); 
+            
+            if (searchForm) {
+                searchForm.addEventListener("submit", function() {
+                    document.getElementById("loadingOverlay").style.display = "flex";
+                    
+                    const steps = [
+                        { title: "กำลังดึงข้อมูล", text: "กำลังสแครปข้อมูลสินค้าและราคาจาก Lazada...", progress: "30%" },
+                        { title: "กำลังรวบรวมรีวิว", text: "กำลังดึงความคิดเห็นจากผู้ใช้งานจริง...", progress: "50%" },
+                        { title: "AI กำลังทำงาน", text: "กำลังส่งข้อมูลให้ AI Gemini วิเคราะห์ข้อดี-ข้อเสีย...", progress: "70%" },
+                        { title: "กำลังสรุปผลลัพธ์", text: "กำลังคัดเลือก 9 สินค้าที่คุ้มค่าที่สุดสำหรับคุณ...", progress: "90%" },
+                        { title: "ใกล้เสร็จแล้ว!", text: "กำลังเตรียมหน้าแสดงผลลัพธ์...", progress: "98%" }
+                    ];
+
+                    let stepIndex = 0;
+                    const titleEl = document.getElementById("loadingStatusTitle");
+                    const textEl = document.getElementById("loadingStatusText");
+                    const progressEl = document.getElementById("loadingProgressBar");
+
+                    // อัปเดตสถานะทุกๆ 2.5 วินาทีระหว่างรอ Backend โหลดหน้าถัดไป
+                    const interval = setInterval(() => {
+                        if (stepIndex < steps.length) {
+                            titleEl.innerText = steps[stepIndex].title;
+                            textEl.innerText = steps[stepIndex].text;
+                            progressEl.style.width = steps[stepIndex].progress;
+                            stepIndex++;
+                        } else {
+                            clearInterval(interval);
+                        }
+                    }, 2500); 
+                });
+            }
+        });
+    </script>
+</body>
+</html>

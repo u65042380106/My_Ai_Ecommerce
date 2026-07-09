@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="text-center p-5 rounded-4 shadow bg-white border" style="max-width: 500px; width: 100%; border-color: #233d4d !important;">
+        <i class="fas fa-robot fa-4x mb-4 fa-bounce" style="color: #fe7f2d;"></i>
+        
+        <div class="progress mb-4" style="height: 12px; background-color: #eaecf0; border-radius: 50rem;">
+            <div id="loadingProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 10%; background-color: #fe7f2d; transition: width 1s ease;"></div>
+        </div>
+        
+        <h4 class="fw-bold mb-2" style="color: #233d4d;" id="statusTitle">ระบบกำลังเริ่มต้น...</h4>
+        <p class="text-muted mb-0" id="statusText">กรุณารอสักครู่ ระบบกำลังเตรียมการเชื่อมต่อข้อมูล</p>
+        
+        <div class="mt-4 pt-3 border-top" style="border-color: #eaecf0 !important;">
+            <small class="text-muted"><i class="fas fa-info-circle me-1"></i> คำค้นหาของคุณ: <strong>{{ history.keyword }}</strong></small>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const historyId = "{{ history.id }}";
+        const titleEl = document.getElementById("statusTitle");
+        const textEl = document.getElementById("statusText");
+        const progressEl = document.getElementById("loadingProgressBar");
+        
+        function checkStatus() {
+            fetch(`/api/check_status/${historyId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    const status = data.status;
+                    
+                    if (status === 'pending') {
+                        titleEl.innerText = "กำลังเริ่มต้นระบบ";
+                        textEl.innerText = "ส่งคำค้นหาไปยังระบบจัดการ...";
+                        progressEl.style.width = "15%";
+                    } 
+                    else if (status === 'pending_n8n') {
+                        // ปรับข้อความให้ครอบคลุมการสแครปรอบ 2 ที่ n8n เป็นคนทำ
+                        titleEl.innerText = "ระบบกำลังประมวลผล";
+                        textEl.innerText = "กำลังดึงข้อมูล > AI คัดเลือก > เจาะลึกรายละเอียดสินค้า...";
+                        progressEl.style.width = "60%"; // วิ่งมารอตรงกลาง
+                    } 
+                    else if (status === 'success') {
+                        titleEl.innerText = "เสร็จสมบูรณ์!";
+                        textEl.innerText = "กำลังพาท่านไปยังหน้าเลือกสินค้าเพื่อเปรียบเทียบ...";
+                        progressEl.style.width = "100%";
+                        progressEl.classList.remove('progress-bar-animated');
+                        progressEl.classList.add('bg-success');
+                        
+                        setTimeout(() => {
+                            window.location.href = `/select-compare/${historyId}/`; 
+                        }, 1000);
+                    } 
+                    else if (status === 'error') {
+                        titleEl.innerText = "เกิดข้อผิดพลาด";
+                        textEl.innerText = "ไม่สามารถประมวลผลข้อมูลได้ กรุณาลองใหม่อีกครั้ง";
+                        titleEl.classList.add("text-danger");
+                        progressEl.style.width = "100%";
+                        progressEl.classList.remove('progress-bar-animated');
+                        progressEl.classList.add('bg-danger');
+                        clearInterval(interval);
+                    }
+                })
+                .catch(error => console.error('Error fetching status:', error));
+        }
+
+        checkStatus();
+        const interval = setInterval(checkStatus, 3000);
+    });
+</script>
+{% endblock %}

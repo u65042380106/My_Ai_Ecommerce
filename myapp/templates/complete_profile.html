@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header border-0 text-white p-4" style="background-color: #233d4d;">
+                    <h3 class="fw-bold mb-1 text-center">
+                        <i class="fas fa-user-edit me-2" style="color: #fe7f2d;"></i>ข้อมูลส่วนตัว
+                    </h3>
+                    <p class="text-center mb-0" style="color: #eaecf0; font-size: 0.9rem;">
+                        กรุณากรอกข้อมูลให้ครบถ้วนเพื่อประสบการณ์การใช้งานที่ดีที่สุด
+                    </p>
+                </div>
+                
+                <div class="card-body p-4 p-md-5 bg-white">
+                    <form method="POST" class="profile-form">
+                        {% csrf_token %}
+
+                        <div class="mb-4">
+                            <label for="{{ form.username.id_for_label }}" class="form-label fw-bold">ชื่อผู้ใช้งาน (Username)</label>
+                            {{ form.username }}
+                            {% if form.username.errors %}
+                                <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ form.username.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label for="{{ form.first_name.id_for_label }}" class="form-label fw-bold">ชื่อจริง</label>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}
+                                    <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ form.first_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label for="{{ form.last_name.id_for_label }}" class="form-label fw-bold">นามสกุล</label>
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}
+                                    <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ form.last_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-5">
+                            <label for="{{ form.gender.id_for_label }}" class="form-label fw-bold">เพศ</label>
+                            {{ form.gender }}
+                            {% if form.gender.errors %}
+                                <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ form.gender.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <button type="submit" class="btn w-100 rounded-pill fw-bold text-white shadow-sm py-3" style="background-color: #fe7f2d; font-size: 1.1rem;">
+                            <i class="fas fa-save me-1"></i> บันทึกข้อมูล
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    /* CSS ตกแต่ง Input และ Select ของ Django ให้ออกมาสวยงาม */
+    .profile-form input[type="text"],
+    .profile-form select {
+        width: 100%;
+        padding: 0.8rem 1.2rem;
+        border: 2px solid #eaecf0;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        color: #233d4d;
+        background-color: #f8f9fa;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    /* เอฟเฟกต์ตอนกดพิมพ์ */
+    .profile-form input[type="text"]:focus,
+    .profile-form select:focus {
+        border-color: #fe7f2d;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(254, 127, 45, 0.15);
+        background-color: #ffffff;
+    }
+
+    .profile-form label {
+        color: #233d4d;
+        margin-bottom: 0.5rem;
+    }
+
+    /* เอฟเฟกต์ปุ่มตอนเอาเมาส์ชี้ */
+    .btn:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+        transition: all 0.2s ease-in-out;
+    }
+</style>
+{% endblock %}

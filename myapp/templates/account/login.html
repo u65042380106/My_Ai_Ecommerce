@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load account socialaccount %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6 col-lg-5">
+            
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header border-0 text-white p-4 text-center" style="background-color: #233d4d;">
+                    <h3 class="fw-bold mb-0">
+                        <i class="fas fa-sign-in-alt me-2" style="color: #fe7f2d;"></i>เข้าสู่ระบบ
+                    </h3>
+                </div>
+                
+                <div class="card-body p-4 p-md-5 bg-white">
+                    
+                    <div class="d-flex align-items-center mb-4">
+                        <hr class="flex-grow-1 m-0">
+                        <span class="mx-3 text-muted small fw-bold"></span>
+                        <hr class="flex-grow-1 m-0">
+                    </div>
+
+                    <form class="login-form" method="POST" action="{% url 'account_login' %}">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        
+                        {% if redirect_field_value %}
+                        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                        {% endif %}
+                        
+                        <div class="d-grid mt-4">
+                            <button class="btn rounded-pill fw-bold text-white py-3 transition-hover" type="submit" style="background-color: #fe7f2d; font-size: 1.1rem;">
+                                เข้าสู่ระบบ
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    /* CSS ตกแต่งฟอร์ม Login ให้สวยงามตามธีม */
+    .login-form p {
+        margin-bottom: 1.2rem;
+    }
+    .login-form label {
+        font-weight: bold;
+        color: #233d4d;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    .login-form input[type="text"],
+    .login-form input[type="password"],
+    .login-form input[type="email"] {
+        width: 100%;
+        padding: 0.8rem 1.2rem;
+        border: 2px solid #eaecf0;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        color: #233d4d;
+        background-color: #f8f9fa;
+        transition: all 0.2s ease-in-out;
+    }
+    .login-form input[type="text"]:focus,
+    .login-form input[type="password"]:focus,
+    .login-form input[type="email"]:focus {
+        border-color: #fe7f2d;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(254, 127, 45, 0.15);
+        background-color: #ffffff;
+    }
+    .login-form ul.errorlist {
+        color: #e63946;
+        list-style: none;
+        padding: 0;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+    }
+    .login-form .helptext {
+        font-size: 0.85rem;
+        color: #6c757d;
+        display: block;
+        margin-top: 0.4rem;
+    }
+    .transition-hover:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+        transition: all 0.2s ease-in-out;
+    }
+</style>
+{% endblock %}

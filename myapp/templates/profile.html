@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card shadow-sm border-0 rounded-3 p-4 max-width-md mx-auto mt-4">
+    <h3 class="mb-4 fw-bold"><i class="fas fa-user-cog text-primary"></i> ตั้งค่าโปรไฟล์ผู้ใช้งาน</h3>
+    
+    <div class="text-center mb-4">
+        <img src="{{ user.socialaccount_set.all.0.get_avatar_url|default:'https://cdn-icons-png.flaticon.com/512/149/149071.png' }}" class="rounded-circle shadow" width="100" height="100" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+        <h4 class="mt-2 fw-bold">{{ user.username }}</h4>
+        <p class="text-muted">{{ user.email }}</p>
+    </div>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show rounded-3" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <form method="POST" action="">
+        {% csrf_token %}
+        
+        <div class="mb-3">
+            <label class="form-label fw-semibold">ชื่อผู้ใช้ (Username) <span class="text-danger">*</span></label>
+            <input type="text" name="username" class="form-control" value="{{ user.username }}" required>
+            <div class="form-text small text-warning"><i class="fas fa-info-circle"></i> สามารถเปลี่ยนชื่อผู้ใช้ได้ แต่ต้องไม่ซ้ำกับบุคคลอื่นในระบบ</div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">ชื่อ (First Name)</label>
+                <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}" placeholder="กรอกชื่อของคุณ">
+            </div>
+            <div class="col-md-6 mb-4">
+                <label class="form-label fw-semibold">นามสกุล (Last Name)</label>
+                <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}" placeholder="กรอกนามสกุลของคุณ">
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold py-2">
+            <i class="fas fa-save me-1"></i> บันทึกข้อมูล
+        </button>
+    </form>
+</div>
+
+<style>
+    .max-width-md {
+        max-width: 600px;
+    }
+</style>
+{% endblock %}

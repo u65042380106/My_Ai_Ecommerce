@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4 mb-5" style="color: #000000;">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div>
+            <h2 class="fw-bold mb-1" style="color: #233d4d;">
+                <i class="fas fa-list-check me-2" style="color: #fe7f2d;"></i>กรุณาเลือกสินค้า: {{ keyword }}
+            </h2>
+            <p class="text-muted mb-0">เลือกสินค้าอย่างน้อย 2 ชิ้น เพื่อนำไปวิเคราะห์เปรียบเทียบ</p>
+        </div>
+        <a href="/" class="btn rounded-pill px-4 mt-3 mt-md-0" style="background-color: #eaecf0; color: #233d4d; border: 1px solid #233d4d;">
+            <i class="fas fa-search me-1"></i> ค้นหาใหม่
+        </a>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-danger rounded-pill">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST" id="compareForm">
+        {% csrf_token %}
+        <div class="row g-4">
+            {% for item in all_products %}
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative w-100 transition-up product-card" style="cursor: pointer;" onclick="toggleCheckbox(this)">
+                    <input type="checkbox" name="selected_products" value="{{ forloop.counter0 }}" class="d-none product-checkbox">
+                    <div class="position-absolute top-0 end-0 m-3 check-icon" style="display: none; z-index: 10;">
+                        <i class="fas fa-check-circle fa-2x text-success bg-white rounded-circle shadow"></i>
+                    </div>
+
+                    <img src="{{ item.image_url|default:'https://via.placeholder.com/400x300?text=No+Image' }}" class="card-img-top" style="height: 200px; object-fit: cover;">
+                    <div class="card-body p-4 bg-white">
+    <h6 class="card-title fw-bold text-truncate" style="color: #233d4d;">{{ item.title|default:"ไม่มีชื่อสินค้า" }}</h6>
+    <h4 class="fw-bold mb-3" style="color: #fe7f2d;">฿{{ item.price }}</h4>
+    
+    <div class="small text-muted d-flex flex-column gap-1 mb-3">
+        <span><i class="fas fa-star text-warning me-1"></i> <strong>คะแนน:</strong> {{ item.rating }}</span>
+        <span><i class="fas fa-shopping-basket text-info me-1"></i> <strong>ขายแล้ว:</strong> {{ item.sales }} ชิ้น</span>
+        <span><i class="fas fa-comment-dots text-secondary me-1"></i> <strong>รีวิว:</strong> {{ item.review_count|default:"0" }} รายการ</span>
+    </div>
+
+    <a href="{{ item.link }}" target="_blank" class="btn btn-outline-secondary w-100 rounded-pill btn-sm" onclick="event.stopPropagation();">
+        <i class="fas fa-external-link-alt me-1"></i> ไปที่ Lazada
+    </a>
+</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="fixed-bottom bg-white shadow-lg p-3 text-center border-top">
+            <span class="fw-bold me-3" id="selectionCount" style="color: #233d4d;">เลือกแล้ว: 0 ชิ้น (ต้องการขั้นต่ำ 2 ชิ้น)</span>
+            <button type="submit" class="btn rounded-pill px-5 py-2 fw-bold text-white shadow-sm disabled" style="background-color: #fe7f2d;" id="btnCompare">
+                ไปหน้าวิเคราะห์เปรียบเทียบ <i class="fas fa-arrow-right ms-2"></i>
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+    body { margin-bottom: 80px; }
+    .transition-up { transition: transform 0.2s, box-shadow 0.2s; }
+    .transition-up:hover { transform: translateY(-3px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
+</style>
+
+<script>
+    function toggleCheckbox(labelElement) {
+        const checkbox = labelElement.querySelector('.product-checkbox');
+        const checkIcon = labelElement.querySelector('.check-icon');
+        checkbox.checked = !checkbox.checked;
+
+        if (checkbox.checked) {
+            labelElement.style.border = "3px solid #198754";
+            checkIcon.style.display = "block";
+        } else {
+            labelElement.style.border = "none";
+            checkIcon.style.display = "none";
+        }
+
+        const currentCount = document.querySelectorAll('.product-checkbox:checked').length;
+        const selectionCount = document.getElementById('selectionCount');
+        const btnCompare = document.getElementById('btnCompare');
+
+        selectionCount.innerText = `เลือกแล้ว: ${currentCount} ชิ้น`;
+        
+        // บังคับว่าต้องเลือกอย่างน้อย 2 ชิ้นขึ้นไปถึงจะกดปุ่มได้
+        if (currentCount >= 2) {
+            btnCompare.classList.remove('disabled');
+        } else {
+            btnCompare.classList.add('disabled');
+        }
+    }
+</script>
+{% endblock %}
