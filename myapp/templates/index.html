@@ -1,69 +1,100 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container mt-5" style="color: #000000;">
-    <div class="text-center mb-5 mt-4">
-        <p class="text-muted fs-5 mb-4">ค้นหาสินค้าพร้อมให้ AI ช่วยวิเคราะห์</p>
-        
-        <a href="/search/" class="btn py-3 rounded-pill fw-bold shadow mt-2 text-white transition-all fs-4 d-inline-flex justify-content-center align-items-center" 
-           style="background-color: #e7752a; border: none; width: 100%; max-width: 500px; letter-spacing: 0.5px;"
-           onmouseover="this.style.backgroundColor='#e36e22'; this.style.transform='scale(1.03) translateY(-2px)';" 
-           onmouseout="this.style.backgroundColor='#fe7f2d'; this.style.transform='scale(1) translateY(0)';">
-            <i class="fas fa-search me-3" style="font-size: 1.2em;"></i> เริ่มต้นค้นหาสินค้าเลย
-        </a>
-    </div>
+<!-- เปลี่ยน Wrapper ให้ใช้คลาสพื้นหลังสีน้ำเงินมีลูกเล่น -->
+<div class="analyze-dashboard-bg py-4">
+    <!-- ปรับสีตัวอักษรหลักเป็นสีขาวเพื่อให้ตัดกับพื้นหลังสีเข้ม -->
+    <div class="container mt-4 text-white">
+        <div class="text-center mb-5">
+            <p class="fs-5 mb-4" style="opacity: 0.85;">ค้นหาสินค้าพร้อมให้ AI ช่วยวิเคราะห์</p>
+            
+            <a href="/search/" class="btn py-3 rounded-pill fw-bold shadow mt-2 text-white transition-all fs-4 d-inline-flex justify-content-center align-items-center" 
+               style="background-color: #e7752a; border: none; width: 100%; max-width: 500px; letter-spacing: 0.5px;"
+               onmouseover="this.style.backgroundColor='#e36e22'; this.style.transform='scale(1.03) translateY(-2px)'; this.style.boxShadow='0 10px 25px rgba(231, 117, 42, 0.4)';" 
+               onmouseout="this.style.backgroundColor='#fe7f2d'; this.style.transform='scale(1) translateY(0)'; this.style.boxShadow='0 0.5rem 1rem rgba(0, 0, 0, 0.15)';">
+                <i class="fas fa-search me-3" style="font-size: 1.2em;"></i> เริ่มต้นค้นหาสินค้าเลย
+            </a>
+        </div>
 
-    <hr class="my-5" style="opacity: 0.08;">
+        <hr class="my-5" style="border-color: rgba(255, 255, 255, 0.2);">
 
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <h3 class="fw-bold mb-4 text-center" style="color: #233d4d;">
-                <i class="fas fa-fire text-warning me-2" style="color: #fe7f2d !important;"></i> 10 อันดับคำค้นหายอดนิยมในระบบ 
-            </h3>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <!-- ปรับสีหัวข้อให้เป็นสีขาว -->
+                <h3 class="fw-bold mb-4 text-center text-white">
+                    <i class="fas fa-fire text-warning me-2" style="color: #fe7f2d !important;"></i> 10 อันดับคำค้นหายอดนิยมในระบบ 
+                </h3>
 
-            {% if popular_searches %}
-                <div class="card border-0 shadow-sm p-4 bg-white rounded-4">
-                    <div class="d-flex flex-column gap-3">
-                        {% for item in popular_searches %}
-                        <div class="search-trend-item p-3 rounded-3 transition-all" style="background-color: #ffffff; border: 1px solid #eaecf0;">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="fw-bold fs-5" style="color: #233d4d;">
-                                    <i class="fas fa-search text-muted me-2" style="font-size: 0.8rem;"></i>{{ item.keyword }}
-                                </span>
-                                <span class="badge rounded-pill px-3 py-2" style="color: #3e1f0a; background-color: #eaecf0; border: 1px solid #eaecf0;">
-                                    ค้นหา {{ item.search_count }} ครั้ง
-                                </span>
-                            </div>
-                            
-                            <div class="progress rounded-pill bg-light" style="height: 10px;">
-                                <div class="progress-bar rounded-pill" 
-                                     role="progressbar" 
-                                     style="width: {% if Chunck_Max %}{{ item.search_count }}{% else %}{{ item.search_count }}0%{% endif %}; 
-                                            background: linear-gradient(90deg, #ffb07a, #fe7f2d);">
+                {% if popular_searches %}
+                    <!-- ปรับการ์ดให้เป็น Glassmorphism สว่างๆ เพื่อให้อ่านง่าย -->
+                    <div class="card border-0 shadow-lg p-4 rounded-4" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px);">
+                        <div class="d-flex flex-column gap-3">
+                            {% for item in popular_searches %}
+                            <div class="search-trend-item p-3 rounded-3 transition-all" style="background-color: #ffffff; border: 1px solid #eaecf0;">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold fs-5" style="color: #1a365d;">
+                                        <i class="fas fa-search text-muted me-2" style="font-size: 0.8rem;"></i>{{ item.keyword }}
+                                    </span>
+                                    <span class="badge rounded-pill px-3 py-2" style="color: #3e1f0a; background-color: #f8f9fa; border: 1px solid #eaecf0;">
+                                        ค้นหา {{ item.search_count }} ครั้ง
+                                    </span>
+                                </div>
+                                
+                                <div class="progress rounded-pill bg-light" style="height: 10px;">
+                                    <div class="progress-bar rounded-pill" 
+                                         role="progressbar" 
+                                         style="width: {% if Chunck_Max %}{{ item.search_count }}{% else %}{{ item.search_count }}0%{% endif %}; 
+                                                background: linear-gradient(90deg, #ffb07a, #fe7f2d);">
+                                    </div>
                                 </div>
                             </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
                     </div>
-                </div>
-            {% else %}
-                <div class="text-center py-5 bg-white rounded-4 shadow-sm border" style="border-color: #eaecf0!important;">
-                    <i class="fas fa-folder-open fa-3x mb-3" style="color: #233d4d;"></i>
-                    <p class="text-muted fs-5">ยังไม่มีข้อมูลสถิติในระบบ เริ่มต้นค้นหาเพื่อสร้างเทรนด์แรกกัน!</p>
-                </div>
-            {% endif %}
+                {% else %}
+                    <!-- กรณีไม่มีข้อมูล ปรับให้เป็น Glassmorphism เช่นกัน -->
+                    <div class="text-center py-5 rounded-4 shadow-lg border-0" style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px);">
+                        <i class="fas fa-folder-open fa-3x mb-3" style="color: #1a365d;"></i>
+                        <p class="text-muted fs-5">ยังไม่มีข้อมูลสถิติในระบบ เริ่มต้นค้นหาเพื่อสร้างเทรนด์แรกกัน!</p>
+                    </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>
 
 <style>
-    .transition-all {
-        transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+    /* ลูกเล่นพื้นหลังโทนน้ำเงินแบบ Animated Gradient */
+    .analyze-dashboard-bg {
+        /* ไล่สีจากน้ำเงินเข้ม (Navy) ไปยังสีฟ้าหม่นและสีน้ำเงินกรมท่า */
+        background: linear-gradient(-45deg, #0a192f, #172a45, #233d4d, #112240);
+        background-size: 400% 400%;
+        animation: blueGradientFlow 12s ease infinite;
+        min-height: 100vh;
+        width: 100%;
     }
+
+    /* Keyframes สำหรับทำให้สีพื้นหลังเคลื่อนไหวช้าๆ อย่างนุ่มนวล */
+    @keyframes blueGradientFlow {
+        0% {
+            background-position: 0% 50%;
+        }
+        50% {
+            background-position: 100% 50%;
+        }
+        100% {
+            background-position: 0% 50%;
+        }
+    }
+
+    .transition-all {
+        transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+    
     .search-trend-item:hover {
-        transform: translateX(5px);
-        /* เปลี่ยนสี Hover ของรายการค้นหาให้คลุมด้วยสีเทาอ่อน และขอบสีน้ำเงินเข้ม */
-        background-color: #eaecf0 !important; 
-        border-color: #233d4d !important;
+        transform: translateX(5px) translateY(-2px);
+        background-color: #f8fafc !important; 
+        border-color: #fe7f2d !important; 
+        box-shadow: 0 8px 20px rgba(35, 61, 77, 0.08);
     }
 </style>
 {% endblock %}

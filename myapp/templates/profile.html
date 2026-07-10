@@ -32,10 +32,19 @@
                 <label class="form-label fw-semibold">ชื่อ (First Name)</label>
                 <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}" placeholder="กรอกชื่อของคุณ">
             </div>
-            <div class="col-md-6 mb-4">
+            <div class="col-md-6 mb-3">
                 <label class="form-label fw-semibold">นามสกุล (Last Name)</label>
                 <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}" placeholder="กรอกนามสกุลของคุณ">
             </div>
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label fw-semibold">เพศ (Gender)</label>
+            <select name="gender" class="form-select">
+                <option value="M" {% if user.userprofile.gender == 'M' %}selected{% endif %}>ชาย</option>
+                <option value="F" {% if user.userprofile.gender == 'F' %}selected{% endif %}>หญิง</option>
+                <option value="O" {% if user.userprofile.gender == 'O' %}selected{% endif %}>อื่นๆ/ไม่ระบุ</option>
+            </select>
         </div>
         
         <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold py-2">

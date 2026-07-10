@@ -9,6 +9,7 @@ from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse 
 import traceback
+from django.views.decorators.csrf import csrf_exempt
 
 # 🌟 เพิ่ม Q เข้ามาสำหรับการค้นหาแบบเงื่อนไข "หรือ (OR)" 🌟
 from django.db.models import Count, Q 
@@ -51,6 +52,7 @@ def profile_view(request):
         username = request.POST.get('username', '').strip()
         first_name = request.POST.get('first_name', '').strip()
         last_name = request.POST.get('last_name', '').strip()
+        gender = request.POST.get('gender', '') # รับค่าเพศจากฟอร์ม
         
         if username and username != request.user.username:
             if User.objects.filter(username=username).exists():
@@ -61,6 +63,17 @@ def profile_view(request):
         request.user.first_name = first_name
         request.user.last_name = last_name
         request.user.save()
+        
+        # บันทึกข้อมูลเพศลงใน UserProfile
+        if hasattr(request.user, 'userprofile'):
+            profile = request.user.userprofile
+            # เช็คว่าค่าที่ส่งมาตรงกับ choices หรือไม่ ป้องกัน error
+            if gender in ['M', 'F', 'O']:
+                profile.gender = gender
+            else:
+                profile.gender = None
+            profile.save()
+            
         messages.success(request, '✅ อัปเดตข้อมูลโปรไฟล์เรียบร้อยแล้ว!')
         return redirect('profile')
     return render(request, 'profile.html')
@@ -71,7 +84,7 @@ def run_n8n_in_background(history_id, payload):
         history.status = 'pending_n8n'
         history.save()
 
-        N8N_WEBHOOK_URL = 'http://localhost:5678/webhook-test/shopee-search'
+        N8N_WEBHOOK_URL = 'http://localhost:5678/webhook/shopee-search'
         response = requests.post(N8N_WEBHOOK_URL, json=payload, timeout=None)
         
         if response.status_code == 200:
@@ -146,6 +159,7 @@ def dashboard_view(request):
         )
         
         payload = {
+            'history_id': history.id,
             'keyword': keyword,
             'min_price': min_price, 'max_price': max_price,
             'ship_from': ship_from, 'min_rating': min_rating, 
@@ -336,3 +350,76 @@ def view_comparison_view(request, compare_id):
 @login_required
 def edit_profile(request):
     return complete_profile(request)
+
+
+@login_required
+def admin_stats_view(request):
+    # ตรวจสอบว่าเป็นแอดมินหรือทีมงานหรือไม่ ป้องกันผู้ใช้ทั่วไปเข้าถึง
+    if not request.user.is_staff:
+        raise PermissionDenied
+
+    # 1. สรุปจำนวนผู้ใช้ทั้งหมด แยกสถานะเป็นตัวเลข
+    total_users = UserProfile.objects.filter(is_deleted=False).count()
+    normal_users = UserProfile.objects.filter(is_deleted=False, is_suspended=False).count()
+    suspended_users = UserProfile.objects.filter(is_deleted=False, is_suspended=True).count()
+
+    # 2. นับจำนวนผู้ใช้แยกตามเพศ
+    male_users = UserProfile.objects.filter(is_deleted=False, gender='M').count()
+    female_users = UserProfile.objects.filter(is_deleted=False, gender='F').count()
+    # นับคนเลือกอื่นๆ หรือคนที่ยังไม่ได้กรอก/ค่าว่าง
+    other_users = UserProfile.objects.filter(is_deleted=False).filter(
+        Q(gender='O') | Q(gender__isnull=True) | Q(gender='')
+    ).count()
+
+    # 3. สถิติ Top 10 คำค้นหายอดนิยมของเว็บไซต์ทั้งหมด
+    top_keywords_query = SearchHistory.objects.values('keyword').annotate(
+        total=Count('id')
+    ).order_by('-total')[:10]
+    
+    top_keywords_labels = [item['keyword'] for item in top_keywords_query]
+    top_keywords_data = [item['total'] for item in top_keywords_query]
+
+    # 4. สถิติ Top 10 คำค้นหาแยกตามเพศชายและหญิง สำหรับกราฟแท่งแนวนอน
+    male_keyword_data = []
+    female_keyword_data = []
+    
+    for kw in top_keywords_labels:
+        m_count = SearchHistory.objects.filter(keyword=kw, user__userprofile__gender='M').count()
+        f_count = SearchHistory.objects.filter(keyword=kw, user__userprofile__gender='F').count()
+        male_keyword_data.append(m_count)
+        female_keyword_data.append(f_count)
+
+    context = {
+        'total_users': total_users,
+        'normal_users': normal_users,
+        'suspended_users': suspended_users,
+        
+        'male_users': male_users,
+        'female_users': female_users,
+        'other_users': other_users,
+        
+        # แปลงเป็น JSON string เพื่อให้ JavaScript รับค่าไปวาดกราฟได้ง่ายและปลอดภัย
+        'top_keywords_labels': json.dumps(top_keywords_labels, ensure_ascii=False),
+        'top_keywords_data': json.dumps(top_keywords_data),
+        
+        'male_keyword_data': json.dumps(male_keyword_data),
+        'female_keyword_data': json.dumps(female_keyword_data),
+    }
+    return render(request, 'admin_stats.html', context)
+
+@csrf_exempt
+def update_status_api(request, history_id):
+    """ API สำหรับให้ n8n ยิง Webhook กลับมาเพื่ออัปเดตสถานะ Progress Bar """
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            new_status = data.get('status')
+            
+            if new_status:
+                history = SearchHistory.objects.get(id=history_id)
+                history.status = new_status
+                history.save()
+                return JsonResponse({'status': 'success', 'updated_to': new_status})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'invalid request'}, status=400)

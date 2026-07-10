@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-light"><i class="fas fa-chart-bar text-primary me-2"></i> ระบบสถิติสำหรับผู้ดูแลระบบ</h2>
+        <a href="{% url 'manage_members' %}" class="btn btn-outline-secondary rounded-pill shadow-sm fw-bold">
+            <i class="fas fa-users me-1"></i> จัดการสมาชิก
+        </a>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm border-0 border-start border-primary border-4 rounded-3 p-3 bg-white">
+                <div class="d-flex align-items-center">
+                    <div class="p-3 bg-light-primary rounded-circle text-primary me-3">
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-1 fw-bold">ผู้ใช้งานในระบบทั้งหมด</p>
+                        <h3 class="fw-bold mb-0 text-dark">{{ total_users }} คน</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm border-0 border-start border-success border-4 rounded-3 p-3 bg-white">
+                <div class="d-flex align-items-center">
+                    <div class="p-3 bg-light-success rounded-circle text-success me-3">
+                        <i class="fas fa-user-check fa-2x"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-1 fw-bold">บัญชีสถานะปกติ</p>
+                        <h3 class="fw-bold mb-0 text-success">{{ normal_users }} คน</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm border-0 border-start border-danger border-4 rounded-3 p-3 bg-white">
+                <div class="d-flex align-items-center">
+                    <div class="p-3 bg-light-danger rounded-circle text-danger me-3">
+                        <i class="fas fa-user-slash fa-2x"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-1 fw-bold">บัญชีที่ถูกระงับ</p>
+                        <h3 class="fw-bold mb-0 text-danger">{{ suspended_users }} คน</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-5 mb-4">
+            <div class="card shadow-sm border-0 rounded-3 p-4 h-100 bg-white">
+                <h4 class="fw-bold mb-3 text-secondary"><i class="fas fa-venus-mars me-2"></i> สัดส่วนผู้ใช้งานตามเพศ</h4>
+                <div style="position: relative; height:350px;">
+                    <canvas id="genderChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7 mb-4">
+            <div class="card shadow-sm border-0 rounded-3 p-4 h-100 bg-white">
+                <h4 class="fw-bold mb-3 text-secondary"><i class="fas fa-search text-warning me-2"></i> Top 10 คำค้นหายอดนิยม</h4>
+                <div style="position: relative; height:350px;">
+                    <canvas id="topKeywordsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card shadow-sm border-0 rounded-3 p-4 bg-white">
+                <h4 class="fw-bold mb-3 text-secondary"><i class="fas fa-chart-bar me-2"></i> เจาะลึก Top 10 คำค้นหายอดนิยม แยกตามเพศ</h4>
+                <div style="position: relative; height: 600px;">
+                    <canvas id="genderKeywordsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+<script>
+    // ลงทะเบียน Plugin สำหรับแสดงข้อความบนกราฟ
+    Chart.register(ChartDataLabels);
+
+    // ตั้งค่าตัวอักษรพื้นฐานของทุกกราฟให้ใหญ่และหนาขึ้น
+    Chart.defaults.font.size = 16;
+    Chart.defaults.font.weight = 'bold';
+    Chart.defaults.color = '#333'; // สีเข้มขึ้นให้อ่านง่าย
+
+    // รับค่าจาก Django Context
+    const keywordsLabels = {{ top_keywords_labels|safe }};
+    const keywordsData = {{ top_keywords_data|safe }};
+    const mData = {{ male_keyword_data|safe }};
+    const fData = {{ female_keyword_data|safe }};
+
+    // 1. กราฟวงกลม (สัดส่วนเพศ) - เพิ่มตัวเลขและเปอร์เซ็นต์
+    new Chart(document.getElementById('genderChart').getContext('2d'), {
+        type: 'pie',
+        data: {
+            labels: ['ชาย', 'หญิง', 'อื่นๆ / ไม่ระบุ'],
+            datasets: [{
+                data: [{{ male_users }}, {{ female_users }}, {{ other_users }}],
+                backgroundColor: ['#3498db', '#e74c3c', '#95a5a6'],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { 
+                    position: 'bottom',
+                    labels: { padding: 20 }
+                },
+                datalabels: {
+                    color: '#fff',
+                    font: { size: 16, weight: 'bold' },
+                    textAlign: 'center',
+                    formatter: (value, ctx) => {
+                        if (value === 0) return ''; // ถ้าเป็น 0 ไม่ต้องแสดง
+                        let sum = ctx.chart._metasets[ctx.datasetIndex].total;
+                        let percentage = (value * 100 / sum).toFixed(1) + "%";
+                        return value + " คน\n(" + percentage + ")";
+                    }
+                }
+            }
+        }
+    });
+
+    // 2. กราฟแท่งแนวตั้ง (Top 10 รวม) - เปลี่ยนจากโดนัท และเพิ่มเปอร์เซ็นต์
+    new Chart(document.getElementById('topKeywordsChart').getContext('2d'), {
+        type: 'bar', // เปลี่ยนเป็นแนวตั้ง
+        data: {
+            labels: keywordsLabels.length ? keywordsLabels : ['ไม่มีข้อมูล'],
+            datasets: [{
+                label: 'จำนวนการค้นหา',
+                data: keywordsData.length ? keywordsData : [0],
+                backgroundColor: '#f39c12',
+                borderRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: { padding: { top: 40 } }, // เว้นที่ด้านบนให้ตัวเลข
+            scales: {
+                y: { beginAtZero: true }
+            },
+            plugins: {
+                legend: { display: false }, // ปิดคำอธิบายเพราะมีแค่แท่งเดียว
+                datalabels: {
+                    anchor: 'end',
+                    align: 'top',
+                    color: '#000',
+                    font: { size: 14, weight: 'bold' },
+                    textAlign: 'center',
+                    formatter: (value, ctx) => {
+                        if (value === 0) return '';
+                        // คำนวณเปอร์เซ็นต์เทียบกับยอดรวมของ Top 10 นี้
+                        let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                        let percentage = (value * 100 / sum).toFixed(1) + "%";
+                        return value + "\n(" + percentage + ")";
+                    }
+                }
+            }
+        }
+    });
+
+    // 3. กราฟแท่งแนวนอน (แยกเพศ) - ขยายใหญ่ขึ้น และเพิ่มเปอร์เซ็นต์
+    new Chart(document.getElementById('genderKeywordsChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: keywordsLabels.length ? keywordsLabels : ['ไม่มีข้อมูล'],
+            datasets: [
+                {
+                    label: 'ชาย',
+                    data: mData,
+                    backgroundColor: '#3498db',
+                    borderRadius: 3
+                },
+                {
+                    label: 'หญิง',
+                    data: fData,
+                    backgroundColor: '#e74c3c',
+                    borderRadius: 3
+                }
+            ]
+        },
+        options: {
+            indexAxis: 'y', // แนวตั้งเป็นแนวนอน
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: { padding: { right: 80 } }, // เว้นขวาให้ตัวเลขไม่ขาด
+            scales: {
+                x: { beginAtZero: true }
+            },
+            plugins: {
+                legend: { position: 'top' },
+                datalabels: {
+                    anchor: 'end',
+                    align: 'right',
+                    color: '#333',
+                    font: { size: 14, weight: 'bold' },
+                    formatter: (value, ctx) => {
+                        if (value === 0) return ''; // ถ้าค้นหา 0 ครั้ง ซ่อนป้ายกำกับ
+                        
+                        // คำนวณเปอร์เซ็นต์ชาย-หญิงในแต่ละคำค้นหา
+                        let keywordIndex = ctx.dataIndex;
+                        let maleVal = ctx.chart.data.datasets[0].data[keywordIndex] || 0;
+                        let femaleVal = ctx.chart.data.datasets[1].data[keywordIndex] || 0;
+                        let total = maleVal + femaleVal;
+                        
+                        let percentage = total > 0 ? (value * 100 / total).toFixed(0) + "%" : "0%";
+                        return value ;
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+<style>
+    .bg-light-primary { background-color: rgba(52, 152, 219, 0.15); }
+    .bg-light-success { background-color: rgba(46, 204, 113, 0.15); }
+    .bg-light-danger { background-color: rgba(231, 76, 60, 0.15); }
+    .card { transition: transform 0.2s, box-shadow 0.2s; }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
+</style>
+{% endblock %}
