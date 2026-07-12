@@ -49,16 +49,18 @@ def scrape_deep_details(urls):
                     
                 # 2. 🌟 กวาดตัวหนังสือ "ทั้งหมด" ในโซนรายละเอียดสินค้า 🌟
                 raw_text = ""
-                try:
+
+                """try:
                     # ดึงกล่องรายละเอียดสินค้า (คลุมทั้งไฮไลท์ สเปค และรายละเอียด)
                     detail_box = driver.find_element(By.ID, "module_product_detail")
                     raw_text = detail_box.text.strip()
+                except:"""
+
+                try:
+                    # แผนสำรอง: ถ้าหา ID ไม่เจอ ให้ดึงคลาสแทน
+                    detail_box = driver.find_element(By.CSS_SELECTOR, ".pdp-product-detail-v2")
+                    raw_text = detail_box.text.strip()
                 except:
-                    try:
-                        # แผนสำรอง: ถ้าหา ID ไม่เจอ ให้ดึงคลาสแทน
-                        detail_box = driver.find_element(By.CSS_SELECTOR, ".pdp-product-detail-v2")
-                        raw_text = detail_box.text.strip()
-                    except:
                         try:
                             # แผนสำรองสุดท้าย: ดึงข้อความทั้งหน้า
                             raw_text = driver.find_element(By.TAG_NAME, "body").text.strip()

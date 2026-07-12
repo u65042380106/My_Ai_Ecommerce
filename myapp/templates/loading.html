@@ -4,9 +4,8 @@
     <div class="text-center p-5 rounded-4 shadow bg-white border" style="max-width: 500px; width: 100%; border-color: #233d4d !important;">
         <i class="fas fa-robot fa-4x mb-4 fa-bounce" style="color: #fe7f2d;"></i>
         
-        <div class="progress mb-4 position-relative" style="height: 20px; background-color: #eaecf0; border-radius: 50rem;">
-            <div id="loadingProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 25%; background-color: #fe7f2d; transition: width 0.8s ease;"></div>
-            <div id="progressPercentage" class="position-absolute w-100 text-center fw-bold" style="top: 0; left: 0; line-height: 20px; font-size: 0.85rem; color: #233d4d; z-index: 10;">25%</div>
+        <div class="mb-4">
+            <h1 id="progressPercentage" class="display-4 fw-bold" style="color: #fe7f2d;">25%</h1>
         </div>
         
         <h4 class="fw-bold mb-2" style="color: #233d4d;" id="statusTitle">ขั้นตอนที่ 1/4: กำลังค้นหาสินค้า</h4>
@@ -23,20 +22,13 @@
         const historyId = "{{ history.id }}";
         const titleEl = document.getElementById("statusTitle");
         const textEl = document.getElementById("statusText");
-        const progressEl = document.getElementById("loadingProgressBar");
         const percentEl = document.getElementById("progressPercentage");
 
         // ฟังก์ชันสำหรับอัปเดตหน้าจอ
         function updateUI(percent, title, text) {
-            progressEl.style.width = percent + "%";
             percentEl.innerText = percent + "%";
             titleEl.innerText = title;
             textEl.innerText = text;
-            
-            // เปลี่ยนสีตัวอักษรให้เป็นสีขาวเมื่อหลอดโหลดวิ่งผ่าน (เพื่อให้อ่านง่าย)
-            if (percent > 50) {
-                percentEl.style.color = "#ffffff";
-            }
         }
 
         // ---------------------------------------------------------
@@ -48,7 +40,7 @@
 
         // ผ่านไป 1 นาที (60,000 ms): ขั้นที่ 2 - AI กำลังคัดเลือก
         setTimeout(() => {
-            updateUI(50, "AI กำลังคัดเลือก", "AI กำลังวิเคราะห์และคัดกรองสินค้าที่ดีที่สุด...");
+            updateUI(50, "กำลังคัดเลือก", "AI กำลังวิเคราะห์และคัดกรองสินค้าที่ดีที่สุด...");
         }, 60000);
 
         // ผ่านไป 2 นาที (120,000 ms): ขั้นที่ 3 - เริ่มรอระบบจริงทำงานเสร็จ
@@ -67,8 +59,7 @@
                             clearInterval(checkRealStatusInterval); // หยุดเช็ค API
                             
                             updateUI(100, "เสร็จสมบูรณ์!", "กำลังพาท่านไปยังหน้าเลือกสินค้าเพื่อเปรียบเทียบ...");
-                            progressEl.classList.remove('progress-bar-animated');
-                            progressEl.classList.add('bg-success');
+                            percentEl.style.color = '#198754'; // เปลี่ยนสีตัวเลขเป็นสีเขียวเมื่อสำเร็จ
                             
                             // หน่วงเวลาให้ผู้ใช้เห็นข้อความเสร็จสิ้น 1.5 วินาที ก่อนเด้งไปหน้าอื่น
                             setTimeout(() => {
@@ -81,10 +72,8 @@
                             
                             updateUI(100, "เกิดข้อผิดพลาด", "ไม่สามารถประมวลผลข้อมูลได้ กรุณาลองใหม่อีกครั้ง");
                             titleEl.classList.add("text-danger");
-                            progressEl.classList.remove('progress-bar-animated', 'bg-warning');
-                            progressEl.style.backgroundColor = "#e63946"; // สีแดง
+                            percentEl.style.color = '#e63946'; // เปลี่ยนสีตัวเลขเป็นสีแดงเมื่อเกิดข้อผิดพลาด
                         }
-                        // ถ้าสถานะยังไม่ใช่ success หรือ error ก็จะวนเช็คต่อไปทุกๆ 2 วินาที
                     })
                     .catch(error => console.error('Error fetching status:', error));
             }, 2000); // เช็คหลังบ้านทุกๆ 2 วินาที
